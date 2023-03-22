@@ -61,10 +61,10 @@ namespace res2source
         }
         public static string SanitizeName(string name)
         {
-            var names = Regex.Split(name.Trim(), "[\\s]+");
+            var names = Regex.Split(name.Trim(), "[\\s]+").Select(el => el.Trim()).Where(e => e.Length > 0).ToArray();
             if (names.Length > 1)
             {
-                names = names.Select(e => FirstCharToUpperAsSpan(Regex.Replace(name.Trim(), "[^A-Za-z\\d]+", "_"))).ToArray();
+                names = names.Select(e => FirstCharToUpperAsSpan(Regex.Replace(e.Trim(), "[^A-Za-z\\d]+", "_"))).ToArray();
 
                 name = string.Join("", names);
             }
@@ -90,14 +90,13 @@ namespace res2source
 
         private void Export_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            var dialog = new SaveFileDialog();
+            dialog.FileName = model.ClassName + ".h";
+            dialog.Filter = "C++ header files |*.h";
 
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (dialog.ShowDialog() ?? false)
             {
-                var folder = dialog.SelectedPath;
-                folder = Path.Combine(folder, "resource_export");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                var headerFile = dialog.FileName;
                 if (model.Files.Count > 0)
                 {
                     var classTemplate = """
@@ -116,14 +115,14 @@ namespace resource
                     classTemplate = Regex.Replace(classTemplate, "ClassName", model.ClassName);
                     var classSplit = Regex.Split(classTemplate, "\\|template\\|", RegexOptions.Multiline);
 
-                    using (var export = File.Open(Path.Combine(folder, "Resource.h"), FileMode.Create))
+                    using (var export = File.Open(headerFile, FileMode.Create))
                     {
                         export.Write(Encoding.UTF8.GetBytes(classSplit[0]));
                         foreach (var file in model.Files)
                         {
                             export.Write(Encoding.UTF8.GetBytes("\r\n"));
                             var methodTemplate = """
-static std::vector<unsigned char> method()
+        static std::vector<unsigned char> method()
         {
             std::vector<unsigned char> result;
             const char buffer[|size|] = {
@@ -147,6 +146,7 @@ static std::vector<unsigned char> method()
                                 var buffer = new byte[1024];
                                 var dummybuffer = new byte[1];
                                 var read = 0;
+                                export.Write(Encoding.UTF8.GetBytes("\t\t\t\t"));
                                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                                 {
                                     if (read > 0)
@@ -162,7 +162,7 @@ static std::vector<unsigned char> method()
                                             if (((i + 1) % 16) == 0)
                                             {
                                                 export.WriteByte((byte)'\n');
-                                                export.WriteByte((byte)'\t');
+                                                export.Write(Encoding.UTF8.GetBytes("\t\t\t\t"));
                                             }
 
                                         }
