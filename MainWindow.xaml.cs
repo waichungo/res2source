@@ -42,13 +42,22 @@ namespace res2source
         }
         public static string FirstCharToUpperAsSpan(string input)
         {
+            input = input.Trim();
             if (string.IsNullOrEmpty(input))
             {
                 return string.Empty;
             }
-            Span<char> destination = stackalloc char[1];
-            input.AsSpan(0, 1).ToUpperInvariant(destination);
-            return $"{destination}{input.AsSpan(1)}";
+            if (input.Length > 0)
+            {
+                if (Char.IsAsciiLetter(input[0]) && Char.IsLower(input[0]))
+                {
+                    var arr = input.ToCharArray();
+                    arr[0] = Char.ToUpper(input[0]);
+                    input = new string(arr);
+                }
+            }
+
+            return input;
         }
         public static string SanitizeName(string name)
         {
@@ -185,7 +194,7 @@ static std::vector<unsigned char> method()
                         {
                             ObjectName = SanitizeName(Path.GetFileNameWithoutExtension(item)),
                             Path = item,
-                            Size=new FileInfo(item).Length
+                            Size = new FileInfo(item).Length
                         });
                     }
                 }
