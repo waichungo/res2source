@@ -1,2 +1,2 @@
 # res2source
-Convert files to c++ resource header file
+A tool for converting files to c++ resource header file
