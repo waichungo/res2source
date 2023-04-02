@@ -17,6 +17,8 @@ using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using res2source.viewmodels;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Diagnostics;
 
 namespace res2source
 {
@@ -27,7 +29,7 @@ namespace res2source
     {
         static MainWindowViewModel model = new MainWindowViewModel
         {
-            ClassName = "UnnamedClass"
+            ClassName = "Resource"
         };
         public MainWindow()
         {
@@ -49,10 +51,10 @@ namespace res2source
             }
             if (input.Length > 0)
             {
-                if (Char.IsAsciiLetter(input[0]) && Char.IsLower(input[0]))
+                if (char.IsAsciiLetter(input[0]) && char.IsLower(input[0]))
                 {
                     var arr = input.ToCharArray();
-                    arr[0] = Char.ToUpper(input[0]);
+                    arr[0] = char.ToUpper(input[0]);
                     input = new string(arr);
                 }
             }
@@ -125,7 +127,7 @@ namespace resource
         static std::vector<unsigned char> method()
         {
             std::vector<unsigned char> result;
-            const char buffer[|size|] = {
+            const |static| char buffer[|size|] = {
                  |bytesTemplate| 
             };
             result.resize(sizeof(buffer));
@@ -135,6 +137,7 @@ namespace resource
 """;
                             methodTemplate = Regex.Replace(methodTemplate, "method", "Get" + file.ObjectName);
                             methodTemplate = Regex.Replace(methodTemplate, "\\|size\\|", $"{file.Size}");
+                            methodTemplate = Regex.Replace(methodTemplate, "\\|static\\| ", file.UseStatic ? "static " : "");
                             var methodSplit = Regex.Split(methodTemplate, "\\|bytesTemplate\\|", RegexOptions.Multiline);
 
                             export.Write(Encoding.UTF8.GetBytes(methodSplit[0].TrimEnd()));
@@ -146,16 +149,19 @@ namespace resource
                                 var buffer = new byte[1024];
                                 var dummybuffer = new byte[1];
                                 var read = 0;
+                                var totalRead = 0;
                                 export.Write(Encoding.UTF8.GetBytes("\t\t\t\t"));
                                 while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
                                 {
+
                                     if (read > 0)
                                     {
                                         for (int i = 0; i < read; i++)
                                         {
+                                            totalRead += 1;
                                             dummybuffer[0] = buffer[i];
-                                            export.Write(Encoding.UTF8.GetBytes("OX" + Convert.ToHexString(dummybuffer)));
-                                            if (i < (read - 1))
+                                            export.Write(Encoding.UTF8.GetBytes("0x" + Convert.ToHexString(dummybuffer)));
+                                            if (totalRead < file.Size)
                                             {
                                                 export.WriteByte((byte)',');
                                             }
@@ -170,11 +176,21 @@ namespace resource
                                 }
 
                             }
-
-                            export.Write(Encoding.UTF8.GetBytes(methodSplit[1].TrimStart()));
+                            export.Write(Encoding.UTF8.GetBytes("\n\t\t\t\t" + methodSplit[1].TrimStart()));
                         }
                         export.Write(Encoding.UTF8.GetBytes(classSplit[1]));
                     }
+                    MessageBox.Show("Exported successfully");
+
+                    new Thread(() =>
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            UseShellExecute = true,
+                            Arguments = $"/select, \"{headerFile}\"",
+                            FileName = "explorer.exe"
+                        }); ;
+                    }).Start();
                 }
             }
         }
