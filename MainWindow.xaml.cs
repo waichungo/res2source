@@ -127,7 +127,7 @@ namespace resource
         static std::vector<unsigned char> method()
         {
             std::vector<unsigned char> result;
-            const |static| char buffer[|size|] = {
+            |static| const char buffer[|size|] = {
                  |bytesTemplate| 
             };
             result.resize(sizeof(buffer));
