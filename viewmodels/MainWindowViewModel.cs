@@ -17,6 +17,8 @@ namespace res2source.viewmodels
         private string path = "";
         [ObservableProperty]
         private long size = 0;
+        [ObservableProperty]
+        private bool useStatic = false;
     }
     partial class MainWindowViewModel:ViewModelBase
     {
