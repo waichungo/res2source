@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:res2source"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:sys="clr-namespace:System;assembly=mscorlib"
         WindowTitleBrush="#202020"
                  Background="White"
                  Topmost="False"
@@ -12,60 +13,66 @@
                  MinWidth="600"
                  MinHeight="800"
         Title="Res2Source" Height="450" Width="800">
+    <Window.Resources>
+        <local:ListCountToVisibilityConverter x:Key="ListCountToVisibilityConverter"/>
+        <local:EmptyListToBooleanConverter x:Key="EmptyListToBooleanConverter"/>
+        <sys:Boolean x:Key="True">True</sys:Boolean>
+        <sys:Boolean x:Key="False">False</sys:Boolean>
+    </Window.Resources>
     <Grid>
         <Grid Margin="16">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal">
                 <WrapPanel VerticalAlignment="Top" Orientation="Horizontal">
-                   
+
                     <Label Foreground="#202020" VerticalAlignment="Center"  Content="Class name" Margin="0 0 16 0"></Label>
                     <TextBox Padding="8" Text="{Binding ClassName,Mode=TwoWay}" VerticalAlignment="Center" Grid.Column="1" mah:TextBoxHelper.Watermark="Class name"/>
-                    <Button x:Name="AddFile" Click="AddFile_Click" Margin="16 0 0 0" Padding="16 8" Grid.Column="2" Content="Add file"></Button>
-               <CheckBox Margin="16 0 0 0">Compress</CheckBox>
-               <CheckBox Margin="16 0 0 0">Static variables</CheckBox>
+                    <Button x:Name="AddFile" Click="AddFile_Click" Margin="16 0 0 0" Padding="16 8" Grid.Column="2" Content="Add file"></Button>               
+                    <CheckBox Margin="16 0 0 0" IsChecked="{Binding UseStatic}">Static variables</CheckBox>
                 </WrapPanel>
 
             </StackPanel>
-            <Grid  Grid.Row="1" Margin="8">
-            <Border  Panel.ZIndex="8"  VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8">
-                <Label Foreground="Black" Content="No items to view"/>
-            </Border>
-            <ScrollViewer >
-                <ItemsControl ItemsSource="{Binding Files}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#cc202020" Margin="0 8" CornerRadius="16" Padding="16" BorderBrush="#40FFFFFF" BorderThickness="2">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                        <Button BorderThickness="0" x:Name="RemoveItem" Click="RemoveItem_Click" Padding="16 8" Background="Red" Foreground="White" Tag="{Binding}">Remove</Button>
-                                        
-                                        
-                                    </StackPanel>
-                                    <TextBox Grid.Row="1" Text="{Binding ObjectName,Mode=TwoWay}" Padding="8" Margin="0 8"/>
-                                    <Label Margin="0 8" Grid.Row="2" Content="{Binding Path}" Foreground="White"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-                 </Grid>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Click="Export_Click" Cursor="Hand" Padding="16 8" Content="Export"></Button>
+            <Grid  Grid.Row="2" Margin="8">
+                <Border Visibility="{Binding Files.Count,Converter={StaticResource ListCountToVisibilityConverter},ConverterParameter={StaticResource True}}" Panel.ZIndex="8"  VerticalAlignment="Center" HorizontalAlignment="Center" Padding="8">
+                    <Label Foreground="Black" FontSize="16" Content="No items to view"/>
+                </Border>
+                <ScrollViewer >
+                    <ItemsControl ItemsSource="{Binding Files}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#cc202020" Margin="0 8" CornerRadius="16" Padding="16" BorderBrush="#40FFFFFF" BorderThickness="2">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <Button BorderThickness="0" x:Name="RemoveItem" Click="RemoveItem_Click" Padding="16 8" Background="Red" Foreground="White" Tag="{Binding}">Remove</Button>
+
+
+                                        </StackPanel>
+                                        <TextBox Grid.Row="1" Text="{Binding ObjectName,Mode=TwoWay}" Padding="8" Margin="0 8"/>
+                                        <Label Margin="0 8" Grid.Row="2" Content="{Binding Path}" Foreground="White"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button IsEnabled="{Binding Files.Count,Converter={StaticResource EmptyListToBooleanConverter},ConverterParameter={StaticResource False}}" Click="Export_Click" Cursor="Hand" Padding="16 8" Content="Export"></Button>
             </StackPanel>
         </Grid>
     </Grid>
